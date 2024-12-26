@@ -1,8 +1,8 @@
 spring:
   application:
-    name: kedat
+    name: kedat-test
   kafka:
     producer:
-      bootstrap-servers: kafka:9092
+      bootstrap-servers: ${spring.embedded.kafka.brokers}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

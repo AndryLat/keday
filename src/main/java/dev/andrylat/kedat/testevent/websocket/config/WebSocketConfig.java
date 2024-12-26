@@ -13,6 +13,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
   @Autowired private SocketHandler socketHandler;
 
+  @Override
   public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
     registry.addHandler(socketHandler, "/test");
   }

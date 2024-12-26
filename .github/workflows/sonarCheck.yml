@@ -1,8 +1,8 @@
-name: Java CI with Gradle
+name: SonarQube Check on Main branch
 
 on:
   push:
-    branches: ["main", "dev"]
+    branches: ["main"]
   pull_request:
     branches: ["main"]
 
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 23 Temurin
         uses: actions/setup-java@v4
         with:
           java-version: "23"
@@ -39,11 +39,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Check with Spotless
-        run: ./gradlew spotlessCheck
-
-      - name: Build Java Code without tests
-        run: ./gradlew build -x test
-
-      - name: Run tests
-        run: ./gradlew test
+      - name: Check java code using SonarQube
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info

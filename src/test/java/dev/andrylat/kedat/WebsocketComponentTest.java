@@ -89,7 +89,6 @@ public class WebsocketComponentTest {
                         var lastMessage = webSocketHandler.getLastMessage();
 
                         log.error("lastMessage: {}", lastMessage);
-                        System.out.println("last message: " + lastMessage);
 
                         TestAck actualAck = null;
                         try {
@@ -111,6 +110,3 @@ public class WebsocketComponentTest {
         .join();
   }
 }
-
-// TODO create test config and move${spring.embedded.kafka.brokers} to test
-// config. Use kafka container in general config
