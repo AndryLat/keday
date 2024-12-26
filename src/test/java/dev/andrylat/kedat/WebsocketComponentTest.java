@@ -33,82 +33,83 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 @Slf4j
-@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT, classes = {
-        dev.andrylat.kedat.KedayApplication.class,
-        dev.andrylat.kedat.testevent.websocket.config.WebSocketConfig.class
-})
+@SpringBootTest(
+    webEnvironment = WebEnvironment.DEFINED_PORT,
+    classes = {
+      dev.andrylat.kedat.KedayApplication.class,
+      dev.andrylat.kedat.testevent.websocket.config.WebSocketConfig.class
+    })
 @DirtiesContext
 @EmbeddedKafka(partitions = 1, topics = "test-data", kraft = true)
 public class WebsocketComponentTest {
 
-    @LocalServerPort
-    private int port;
+  @LocalServerPort private int port;
 
-    @Autowired
-    private EmbeddedKafkaBroker embeddedKafkaBroker;
+  @Autowired private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-    @Test
-    void shouldReceiveCommitAckWhenSuccessfullExecution() throws IOException {
-        // given
-        log.error("KAFKA CLUSTE URL {}", embeddedKafkaBroker.getBrokersAsString());
-        Map<String, Object> configs = new HashMap<String, Object>(
-                KafkaTestUtils.consumerProps("consumer", "false", embeddedKafkaBroker));
-        var consumer = new DefaultKafkaConsumerFactory<String, String>(
+  @Test
+  void shouldReceiveCommitAckWhenSuccessfullExecution() throws IOException {
+    // given
+    log.error("KAFKA CLUSTE URL {}", embeddedKafkaBroker.getBrokersAsString());
+    Map<String, Object> configs =
+        new HashMap<String, Object>(
+            KafkaTestUtils.consumerProps("consumer", "false", embeddedKafkaBroker));
+    var consumer =
+        new DefaultKafkaConsumerFactory<String, String>(
                 configs, new StringDeserializer(), new StringDeserializer())
-                .createConsumer();
-        consumer.subscribe(Collections.singleton("test-data"));
+            .createConsumer();
+    consumer.subscribe(Collections.singleton("test-data"));
 
-        var webSocketClient = new StandardWebSocketClient();
-        var webSocketHandler = new TestWebSocketHandler();
-        var execute = webSocketClient.execute(webSocketHandler, "ws://localhost:" + port + "/test", "");
+    var webSocketClient = new StandardWebSocketClient();
+    var webSocketHandler = new TestWebSocketHandler();
+    var execute = webSocketClient.execute(webSocketHandler, "ws://localhost:" + port + "/test", "");
 
-        var testData = new TestData("some string", true, 100);
-        var testDataAsJson = new ObjectMapper().writeValueAsString(testData);
+    var testData = new TestData("some string", true, 100);
+    var testDataAsJson = new ObjectMapper().writeValueAsString(testData);
 
-        var expectedAck = new TestAck(true);
+    var expectedAck = new TestAck(true);
 
-        // when && then
+    // when && then
 
-        execute
-                .thenAccept(
-                        websocketSession -> {
-                            try {
-                                websocketSession.sendMessage(new TextMessage(testDataAsJson));
-                            } catch (IOException ex) {
-                                throw new UncheckedIOException(ex);
-                            }
-                        })
-                .thenRun(
-                        () -> {
-                            Awaitility.await()
-                                    .atMost(5, TimeUnit.SECONDS)
-                                    .until(
-                                            () -> {
-                                                var lastMessage = webSocketHandler.getLastMessage();
+    execute
+        .thenAccept(
+            websocketSession -> {
+              try {
+                websocketSession.sendMessage(new TextMessage(testDataAsJson));
+              } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+              }
+            })
+        .thenRun(
+            () -> {
+              Awaitility.await()
+                  .atMost(5, TimeUnit.SECONDS)
+                  .until(
+                      () -> {
+                        var lastMessage = webSocketHandler.getLastMessage();
 
-                                                log.error("lastMessage: {}", lastMessage);
-                                                System.out.println("last message: " + lastMessage);
+                        log.error("lastMessage: {}", lastMessage);
+                        System.out.println("last message: " + lastMessage);
 
-                                                TestAck actualAck = null;
-                                                try {
-                                                    actualAck = new ObjectMapper().readValue(lastMessage,
-                                                            TestAck.class);
-                                                } catch (JsonProcessingException | IllegalArgumentException e) {
-                                                    return false;
-                                                }
+                        TestAck actualAck = null;
+                        try {
+                          actualAck = new ObjectMapper().readValue(lastMessage, TestAck.class);
+                        } catch (JsonProcessingException | IllegalArgumentException e) {
+                          return false;
+                        }
 
-                                                assertEquals(expectedAck, actualAck);
+                        assertEquals(expectedAck, actualAck);
 
-                                                ConsumerRecords<String, String> records = consumer
-                                                        .poll(Duration.of(10, ChronoUnit.SECONDS));
+                        ConsumerRecords<String, String> records =
+                            consumer.poll(Duration.of(10, ChronoUnit.SECONDS));
 
-                                                assertEquals(1, records.count());
-                                                assertEquals(testDataAsJson, records.iterator().next().value());
-                                                return true;
-                                            });
-                        })
-                .join();
-    }
+                        assertEquals(1, records.count());
+                        assertEquals(testDataAsJson, records.iterator().next().value());
+                        return true;
+                      });
+            })
+        .join();
+  }
 }
 
 // TODO create test config and move${spring.embedded.kafka.brokers} to test
