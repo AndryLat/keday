@@ -13,10 +13,8 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
@@ -85,7 +83,8 @@ public class WebsocketComponentTest {
             })
         .thenRun(
             () -> {
-              // Every second we are checking if  test is passed and returns true as a result. If not - try again. We do it during 5 seconds after it test will be failed.
+              // Every second we are checking if  test is passed and returns true as a result. If
+              // not - try again. We do it during 5 seconds after it test will be failed.
               Awaitility.await()
                   .atMost(5, TimeUnit.SECONDS)
                   .until(
@@ -103,8 +102,7 @@ public class WebsocketComponentTest {
 
                         assertEquals(expectedAck, actualAck);
 
-                        var records =
-                            consumer.poll(Duration.of(10, ChronoUnit.SECONDS));
+                        var records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS));
 
                         assertEquals(1, records.count());
                         assertEquals(testDataAsJson, records.iterator().next().value());
