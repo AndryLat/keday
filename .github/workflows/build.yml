@@ -21,7 +21,19 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
       - name: Check with Spotless
         run: ./gradlew spotlessCheck
       - name: Build Java Code without tests
@@ -29,11 +41,7 @@ jobs:
       - name: Run tests
         run: ./gradlew test
       - name: Check java code using SonarQube
-        uses: SonarSource/sonarqube-scan-action@v4
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=andrylat
-            -Dsonar.projectKey=andrylat_test
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew build sonar --info
