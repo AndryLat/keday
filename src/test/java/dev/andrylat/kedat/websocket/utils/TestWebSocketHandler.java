@@ -10,7 +10,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 public class TestWebSocketHandler extends TextWebSocketHandler {
 
   @Getter private WebSocketSession currentSession;
-  @Getter private String response;
   @Getter private String lastMessage;
 
   @Override

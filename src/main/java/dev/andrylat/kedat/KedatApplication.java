@@ -6,9 +6,9 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 @SpringBootApplication
 @EnableKafka
-public class KedayApplication {
+public class KedatApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(KedayApplication.class, args);
+    SpringApplication.run(KedatApplication.class, args);
   }
 }

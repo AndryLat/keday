@@ -36,7 +36,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 @SpringBootTest(
     webEnvironment = WebEnvironment.DEFINED_PORT,
     classes = {
-      dev.andrylat.kedat.KedayApplication.class,
+      dev.andrylat.kedat.KedatApplication.class,
       dev.andrylat.kedat.testevent.websocket.config.WebSocketConfig.class
     })
 @DirtiesContext
@@ -49,17 +49,20 @@ public class WebsocketComponentTest {
 
   @Test
   void shouldReceiveCommitAckWhenSuccessfullExecution() throws IOException {
-    // given
-    log.error("KAFKA CLUSTE URL {}", embeddedKafkaBroker.getBrokersAsString());
-    Map<String, Object> configs =
+    // GIVEN
+
+    // Creation of embedded Kafka consumer for checking results of message production in main code.
+    var configs =
         new HashMap<String, Object>(
             KafkaTestUtils.consumerProps("consumer", "false", embeddedKafkaBroker));
+
     var consumer =
         new DefaultKafkaConsumerFactory<String, String>(
                 configs, new StringDeserializer(), new StringDeserializer())
             .createConsumer();
     consumer.subscribe(Collections.singleton("test-data"));
 
+    // Websocket client configuration
     var webSocketClient = new StandardWebSocketClient();
     var webSocketHandler = new TestWebSocketHandler();
     var execute = webSocketClient.execute(webSocketHandler, "ws://localhost:" + port + "/test", "");
@@ -69,7 +72,7 @@ public class WebsocketComponentTest {
 
     var expectedAck = new TestAck(true);
 
-    // when && then
+    // WHEN && THEN
 
     execute
         .thenAccept(
@@ -82,6 +85,7 @@ public class WebsocketComponentTest {
             })
         .thenRun(
             () -> {
+              // Every second we are checking if  test is passed and returns true as a result. If not - try again. We do it during 5 seconds after it test will be failed.
               Awaitility.await()
                   .atMost(5, TimeUnit.SECONDS)
                   .until(
@@ -99,7 +103,7 @@ public class WebsocketComponentTest {
 
                         assertEquals(expectedAck, actualAck);
 
-                        ConsumerRecords<String, String> records =
+                        var records =
                             consumer.poll(Duration.of(10, ChronoUnit.SECONDS));
 
                         assertEquals(1, records.count());

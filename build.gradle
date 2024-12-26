@@ -2,10 +2,21 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+
+	// Checking and fixing code style
+	// Details are here: https://github.com/diffplug/spotless
 	id "com.diffplug.spotless" version "6.25.0"
 
+	// Checks if code is clean using SonarQube
+	// Details are here: https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/scanners/sonarscanner-for-gradle/
 	id "org.sonarqube" version "6.0.1.5171"
+
+	// Finds bugs in Java code
+	// Details are here: https://spotbugs.readthedocs.io/en/latest/introduction.html
 	id "com.github.spotbugs" version "6.0.27"
+
+	// Higlights simple mistakes in Java code
+	// Details are here: https://errorprone.info/
 	id "net.ltgt.errorprone" version "4.1.0"
 }
 
@@ -29,7 +40,9 @@ repositories {
 }
 
 dependencies {
+	// Mandatory dependency for Error Prone plugin.
 	errorprone "com.google.errorprone:error_prone_core:2.35.1"
+
 	// Lombok
 	annotationProcessor 'org.projectlombok:lombok'
 	compileOnly 'org.projectlombok:lombok'
@@ -45,6 +58,7 @@ dependencies {
 	implementation 'org.apache.kafka:kafka-streams'
 	implementation 'org.springframework.kafka:spring-kafka'
 	
+	// Tests
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 
@@ -55,6 +69,8 @@ dependencies {
 	
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
 
+	// Awesome library for testing features which needs some delay during execution
+	// Details: http://www.awaitility.org/
 	testImplementation 'org.awaitility:awaitility:4.2.2'
 }
 
@@ -62,6 +78,7 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// Configuration of Spotless
 spotless {
   java {
     importOrder()
@@ -70,6 +87,7 @@ spotless {
   }
 }
 
+// After build code will be formatted automatically.
 afterEvaluate {
 	def spotless = tasks.findByName('spotlessApply')
 	if (spotless) {
@@ -83,6 +101,7 @@ afterEvaluate {
 	}
 }
 
+// Enable logging during Gradle test execution
 test {
 	testLogging {
 		exceptionFormat "full"
@@ -90,6 +109,7 @@ test {
 	}
 }
 
+// Configuration for SonarQube
 sonar {
   properties {
     property "sonar.projectKey", "andrylat_test"
@@ -98,6 +118,7 @@ sonar {
   }
 }
 
+// Configuration for SpotBugs plugin.
 spotbugs {
 	ignoreFailures = true
 	showProgress = true
@@ -113,6 +134,7 @@ spotbugsMain {
     }
 }
 
+// Additional configuration for ErrorProne plugin
 tasks.withType(JavaCompile).configureEach {
     options.errorprone.disableWarningsInGeneratedCode = true
 }

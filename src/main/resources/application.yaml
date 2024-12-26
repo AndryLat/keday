@@ -1,6 +1,6 @@
 spring:
   application:
-    name: kedat
+    name: Kafka Event Driven Architecture Task
   kafka:
     producer:
       bootstrap-servers: kafka:9092

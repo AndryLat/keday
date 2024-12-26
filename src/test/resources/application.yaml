@@ -3,6 +3,6 @@ spring:
     name: kedat-test
   kafka:
     producer:
-      bootstrap-servers: ${spring.embedded.kafka.brokers}
+      bootstrap-servers: ${spring.embedded.kafka.brokers} # it is needed to connect test application and embedded kafka. Details: https://stackoverflow.com/a/69112757
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
