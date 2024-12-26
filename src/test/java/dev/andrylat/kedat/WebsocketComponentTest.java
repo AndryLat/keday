@@ -1,8 +1,12 @@
-package dev.andrylat.kedat.websocket;
+package dev.andrylat.kedat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.andrylat.kedat.testevent.model.TestAck;
+import dev.andrylat.kedat.testevent.model.TestData;
+import dev.andrylat.kedat.websocket.utils.TestWebSocketHandler;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -11,8 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.kafka.clients.consumer.Consumer;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
@@ -22,7 +25,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -30,18 +32,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import dev.andrylat.kedat.testevent.model.TestAck;
-import dev.andrylat.kedat.testevent.model.TestData;
-import dev.andrylat.kedat.websocket.utils.TestWebSocketHandler;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT, classes = {
+        dev.andrylat.kedat.KedayApplication.class,
+        dev.andrylat.kedat.testevent.websocket.config.WebSocketConfig.class
+})
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, brokerProperties = { "listeners=PLAINTEXT://localhost:9092", "port=9092" })
+@EmbeddedKafka(partitions = 1, topics = "test-data", kraft = true)
 public class WebsocketComponentTest {
 
     @LocalServerPort
@@ -53,8 +50,7 @@ public class WebsocketComponentTest {
     @Test
     void shouldReceiveCommitAckWhenSuccessfullExecution() throws IOException {
         // given
-        embeddedKafkaBroker.addTopics("test-data");
-
+        log.error("KAFKA CLUSTE URL {}", embeddedKafkaBroker.getBrokersAsString());
         Map<String, Object> configs = new HashMap<String, Object>(
                 KafkaTestUtils.consumerProps("consumer", "false", embeddedKafkaBroker));
         var consumer = new DefaultKafkaConsumerFactory<String, String>(
@@ -86,16 +82,19 @@ public class WebsocketComponentTest {
                         () -> {
                             Awaitility.await()
                                     .atMost(5, TimeUnit.SECONDS)
-                                    .untilAsserted(
+                                    .until(
                                             () -> {
                                                 var lastMessage = webSocketHandler.getLastMessage();
+
+                                                log.error("lastMessage: {}", lastMessage);
+                                                System.out.println("last message: " + lastMessage);
 
                                                 TestAck actualAck = null;
                                                 try {
                                                     actualAck = new ObjectMapper().readValue(lastMessage,
                                                             TestAck.class);
-                                                } catch (JsonProcessingException e) {
-                                                    fail();
+                                                } catch (JsonProcessingException | IllegalArgumentException e) {
+                                                    return false;
                                                 }
 
                                                 assertEquals(expectedAck, actualAck);
@@ -104,9 +103,13 @@ public class WebsocketComponentTest {
                                                         .poll(Duration.of(10, ChronoUnit.SECONDS));
 
                                                 assertEquals(1, records.count());
-                                                assertEquals(testData, records.iterator().next().value());
+                                                assertEquals(testDataAsJson, records.iterator().next().value());
+                                                return true;
                                             });
                         })
                 .join();
     }
 }
+
+// TODO create test config and move${spring.embedded.kafka.brokers} to test
+// config. Use kafka container in general config

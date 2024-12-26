@@ -40,6 +40,8 @@ dependencies {
 	implementation 'org.apache.kafka:kafka-streams'
 	implementation 'org.springframework.kafka:spring-kafka'
 	
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
@@ -73,5 +75,12 @@ afterEvaluate {
 		tasks.withType(GroovyCompile) {
 			finalizedBy(spotless)
 		}
+	}
+}
+
+test {
+	testLogging {
+		exceptionFormat "full"
+		testLogging.showStandardStreams = true
 	}
 }
