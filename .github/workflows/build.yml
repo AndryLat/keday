@@ -29,7 +29,7 @@ jobs:
     - name: Run tests
       run: ./gradle test
     - name: Check java code using SonarQube
-      uses: SonarSource/sonarqube-scan-action@4.2.1
+      uses: SonarSource/sonarqube-scan-action@v4
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
