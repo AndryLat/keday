@@ -1,0 +1,35 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '23'
+        distribution: 'temurin'
+        cache: 'gradle'
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    - name: Check with Spotless
+      run: ./gradlew spotlessCheck
+    - name: Build Java Code without tests
+      run: ./gradlew build -x test
+    - name: Run tests
+      run: ./gradle test
+    - name: Check java code using SonarQube
+      uses: SonarSource/sonarqube-scan-action@4.2.1
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
