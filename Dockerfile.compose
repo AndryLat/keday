@@ -1,0 +1,8 @@
+FROM amazoncorretto:23
+
+EXPOSE 8080
+
+RUN mkdir /app
+COPY ./build/libs/kedat*-SNAPSHOT.jar /app/kedat.jar
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom","-jar","/app/kedat.jar"]
