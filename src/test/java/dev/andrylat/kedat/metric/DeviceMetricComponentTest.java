@@ -1,18 +1,18 @@
-package dev.andrylat.kedat;
+package dev.andrylat.kedat.metric;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.testevent.model.TestAck;
-import dev.andrylat.kedat.testevent.model.TestData;
-import dev.andrylat.kedat.websocket.utils.TestWebSocketHandler;
+import dev.andrylat.kedat.common.model.CommitMessage;
+import dev.andrylat.kedat.common.websocket.utils.CommitMessageWebsocketTestHandler;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -32,18 +32,24 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 @Slf4j
 @SpringBootTest(
-    webEnvironment = WebEnvironment.DEFINED_PORT,
+    webEnvironment = WebEnvironment.RANDOM_PORT,
     classes = {
       dev.andrylat.kedat.KedatApplication.class,
-      dev.andrylat.kedat.testevent.websocket.config.WebSocketConfig.class
+      dev.andrylat.kedat.config.websocket.WebSocketConfig.class,
+      dev.andrylat.kedat.common.config.TestConfig.class
     })
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = "test-data", kraft = true)
-public class WebsocketComponentTest {
+@EmbeddedKafka(kraft = true)
+public class DeviceMetricComponentTest {
+  private static final String DEVICE_METRICS_TOPIC_NAME = "device-metrics";
+  private static final String DEVICE_METRICS_ENDPOINT = "/ws/device/metric";
 
   @LocalServerPort private int port;
 
   @Autowired private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+  @Autowired private ObjectMapper objectMapper;
+  @Autowired private CommitMessageWebsocketTestHandler commitMessageHandler;
 
   @Test
   void shouldReceiveCommitAckWhenSuccessfullExecution() throws IOException {
@@ -58,56 +64,70 @@ public class WebsocketComponentTest {
         new DefaultKafkaConsumerFactory<String, String>(
                 configs, new StringDeserializer(), new StringDeserializer())
             .createConsumer();
-    consumer.subscribe(Collections.singleton("test-data"));
+    consumer.subscribe(Collections.singleton(DEVICE_METRICS_TOPIC_NAME));
 
     // Websocket client configuration
     var webSocketClient = new StandardWebSocketClient();
-    var webSocketHandler = new TestWebSocketHandler();
-    var execute = webSocketClient.execute(webSocketHandler, "ws://localhost:" + port + "/test", "");
+    var execute =
+        webSocketClient.execute(
+            commitMessageHandler, "ws://localhost:" + port + DEVICE_METRICS_ENDPOINT, "");
 
-    var testData = new TestData("some string", true, 100);
-    var testDataAsJson = new ObjectMapper().writeValueAsString(testData);
+    var messageId = UUID.randomUUID().toString();
+    var deviceMetric = DeviceMetricFixtures.buildDeviceMetric(messageId);
+    var deviceMetricAsJson = objectMapper.writeValueAsString(deviceMetric);
 
-    var expectedAck = new TestAck(true);
+    var expectedCommitMessage =
+        CommitMessage.builder()
+            .messageId(messageId)
+            .isSuccessfully(true)
+            .timestamp(DeviceMetricFixtures.getBaseTime())
+            .build();
 
     // WHEN && THEN
 
     execute
-        .thenAccept(
+        .thenApply(
             websocketSession -> {
               try {
-                websocketSession.sendMessage(new TextMessage(testDataAsJson));
+                websocketSession.sendMessage(new TextMessage(deviceMetricAsJson));
+                log.info("Message is sent: {}", deviceMetricAsJson);
               } catch (IOException ex) {
+                log.error("Message is not sent: {}", ex);
                 throw new UncheckedIOException(ex);
               }
+              return websocketSession;
             })
-        .thenRun(
-            () -> {
+        .thenApply(
+            websocketSession -> {
               // Every second we are checking if  test is passed and returns true as a result. If
               // not - try again. We do it during 5 seconds after it test will be failed.
               Awaitility.await()
                   .atMost(5, TimeUnit.SECONDS)
+                  .ignoreException(NoSuchElementException.class)
                   .until(
                       () -> {
-                        var lastMessage = webSocketHandler.getLastMessage();
-
-                        log.error("lastMessage: {}", lastMessage);
-
-                        TestAck actualAck = null;
-                        try {
-                          actualAck = new ObjectMapper().readValue(lastMessage, TestAck.class);
-                        } catch (JsonProcessingException | IllegalArgumentException e) {
+                        if (commitMessageHandler.getCommitMessages().isEmpty()) {
                           return false;
                         }
 
-                        assertEquals(expectedAck, actualAck);
+                        var commitMessage = commitMessageHandler.getCommitMessages().getFirst();
+                        assertEquals(expectedCommitMessage, commitMessage);
 
                         var records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS));
 
                         assertEquals(1, records.count());
-                        assertEquals(testDataAsJson, records.iterator().next().value());
+                        assertEquals(deviceMetricAsJson, records.iterator().next().value());
                         return true;
                       });
+              return websocketSession;
+            })
+        .thenAccept(
+            websocketSession -> {
+              try {
+                websocketSession.close();
+              } catch (IOException e) {
+                throw new UncheckedIOException(e);
+              }
             })
         .join();
   }

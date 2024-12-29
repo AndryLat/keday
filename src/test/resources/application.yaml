@@ -1,5 +1,3 @@
-server:
-  port: 8080  
 spring:
   application:
     name: kedat-test
@@ -8,3 +6,30 @@ spring:
       bootstrap-servers: ${spring.embedded.kafka.brokers} # it is needed to connect test application and embedded kafka. Details: https://stackoverflow.com/a/69112757
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topics:
+    device-metrics:
+      name: device-metrics
+      partitions: 3 # amount of partitions
+      replicas: 1 # amount of replicas
+      retention: 2629746000 # amount of time data will be stored in the topic. Unit: ms.  2629746000 = 1 month
+    device-sessions:
+      name: device-sessions
+      partitions: 3
+      replicas: 1
+      retention: 2629746000
+    game-sessions:
+      name: game-sessions
+      partitions: 3
+      replicas: 1
+      retention: 2629746000
+
+#disable Embedded Kafka logs
+logging:
+  level:
+    org.springframework.kafka.*: OFF
+    org.springframework.kafka.listener.[KafkaMessageListenerContainer$ListenerConsumer]: OFF
+    org.apache.kafka.*: OFF
+    kafka.*: OFF
+    org.apache.zookeeper.*: OFF
