@@ -2,6 +2,9 @@ spring:
   application:
     name: Kafka Event Driven Architecture Task
   kafka:
+    bootstrap-servers: localhost:9092
+    admin:
+      fail-fast: false
     producer:
       bootstrap-servers: kafka:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -48,5 +51,15 @@ kafka:
         enabled: true # defines if topic is compacted
         segment: 600000 # time when compation will be executed (10 min)
         deletion-retention: 600000 # time of live of tombstones (10 min)
+    alerts:
+      name: alerts
+      partitions: 3
+      replicas: 1
+      retention: 2629746000
+
+alerts:
+  cpu-medium:
+    seconds: 300
+    degrees: 90
 
 

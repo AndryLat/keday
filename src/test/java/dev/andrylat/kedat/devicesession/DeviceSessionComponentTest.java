@@ -35,7 +35,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
     webEnvironment = WebEnvironment.RANDOM_PORT,
     classes = {
       dev.andrylat.kedat.KedatApplication.class,
-      dev.andrylat.kedat.config.websocket.WebSocketConfig.class,
+      dev.andrylat.kedat.web.websocket.WebSocketConfig.class,
       dev.andrylat.kedat.common.config.TestConfig.class
     })
 @DirtiesContext

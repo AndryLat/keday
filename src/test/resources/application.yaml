@@ -2,6 +2,9 @@ spring:
   application:
     name: kedat-test
   kafka:
+    streams:
+      auto-startup: false
+    bootstrap-servers: localhost:0000
     producer:
       bootstrap-servers: ${spring.embedded.kafka.brokers} # it is needed to connect test application and embedded kafka. Details: https://stackoverflow.com/a/69112757
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -48,6 +51,11 @@ kafka:
         enabled: true # defines if topic is compacted
         segment: 600000 # time when compation will be executed (10 min)
         deletion-retention: 600000 # time of live of tombstones (10 min)
+    alerts:
+      name: alerts
+      partitions: 1
+      replicas: 1
+      retention: 2629746000
 
 #disable Embedded Kafka logs
 logging:

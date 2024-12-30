@@ -4,11 +4,13 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @Builder
 @ToString
 @EqualsAndHashCode
+@Jacksonized
 public class DiskMetric {
   private double readSpeedMBps;
   private double writeSpeedMBps;
