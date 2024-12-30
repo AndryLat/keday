@@ -1,8 +1,8 @@
 package dev.andrylat.kedat.devicesession;
 
 import dev.andrylat.kedat.common.Constants;
-import dev.andrylat.kedat.common.model.device.DeviceSession;
-import dev.andrylat.kedat.common.model.device.DeviceStatus;
+import dev.andrylat.kedat.common.model.device.session.DeviceSession;
+import dev.andrylat.kedat.common.model.device.session.DeviceStatus;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 

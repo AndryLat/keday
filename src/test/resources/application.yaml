@@ -11,19 +11,43 @@ kafka:
   topics:
     device-metrics:
       name: device-metrics
-      partitions: 3 # amount of partitions
-      replicas: 1 # amount of replicas
+      partitions: 1 # amount of partitions
+      replicas: 0 # amount of replicas
       retention: 2629746000 # amount of time data will be stored in the topic. Unit: ms.  2629746000 = 1 month
     device-sessions:
       name: device-sessions
-      partitions: 3
-      replicas: 1
+      partitions: 1
+      replicas: 0
       retention: 2629746000
     game-sessions:
       name: game-sessions
-      partitions: 3
-      replicas: 1
+      partitions: 1
+      replicas: 0
       retention: 2629746000
+    users:
+      name: users
+      partitions: 1
+      replicas: 0
+      compact:
+        enabled: true # defines if topic is compacted
+        segment: 600000 # time when compation will be executed (10 min)
+        deletion-retention: 600000 # time of live of tombstones (10 min)
+    devices:
+      name: devices
+      partitions: 1
+      replicas: 0
+      compact:
+        enabled: true # defines if topic is compacted
+        segment: 600000 # time when compation will be executed (10 min)
+        deletion-retention: 600000 # time of live of tombstones (10 min)
+    games:
+      name: games
+      partitions: 1
+      replicas: 0
+      compact:
+        enabled: true # defines if topic is compacted
+        segment: 600000 # time when compation will be executed (10 min)
+        deletion-retention: 600000 # time of live of tombstones (10 min)
 
 #disable Embedded Kafka logs
 logging:

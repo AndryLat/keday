@@ -1,4 +1,4 @@
-package dev.andrylat.kedat.common.model.device;
+package dev.andrylat.kedat.common.model.device.session;
 
 public enum DeviceStatus {
   ONLINE,

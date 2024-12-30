@@ -1,8 +1,8 @@
 package dev.andrylat.kedat.metric.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.common.model.CommitMessage;
 import dev.andrylat.kedat.common.model.metric.DeviceMetric;
+import dev.andrylat.kedat.common.model.websocket.CommitMessage;
 import dev.andrylat.kedat.common.service.DateTimeService;
 import dev.andrylat.kedat.metric.service.DeviceMetricService;
 import java.io.IOException;

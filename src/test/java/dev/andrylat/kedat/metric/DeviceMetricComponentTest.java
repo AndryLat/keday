@@ -3,7 +3,7 @@ package dev.andrylat.kedat.metric;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.common.model.CommitMessage;
+import dev.andrylat.kedat.common.model.websocket.CommitMessage;
 import dev.andrylat.kedat.common.websocket.utils.CommitMessageWebsocketTestHandler;
 import java.io.IOException;
 import java.io.UncheckedIOException;

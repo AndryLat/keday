@@ -1,7 +1,7 @@
 package dev.andrylat.kedat.common.websocket.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.common.model.CommitMessage;
+import dev.andrylat.kedat.common.model.websocket.CommitMessage;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;

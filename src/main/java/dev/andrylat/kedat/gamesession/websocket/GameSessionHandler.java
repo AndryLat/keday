@@ -1,8 +1,8 @@
 package dev.andrylat.kedat.gamesession.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.common.model.CommitMessage;
 import dev.andrylat.kedat.common.model.game.GameSession;
+import dev.andrylat.kedat.common.model.websocket.CommitMessage;
 import dev.andrylat.kedat.common.service.DateTimeService;
 import dev.andrylat.kedat.gamesession.service.GameSessionService;
 import java.io.IOException;

@@ -1,8 +1,8 @@
 package dev.andrylat.kedat.devicesession.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.andrylat.kedat.common.model.CommitMessage;
-import dev.andrylat.kedat.common.model.device.DeviceSession;
+import dev.andrylat.kedat.common.model.device.session.DeviceSession;
+import dev.andrylat.kedat.common.model.websocket.CommitMessage;
 import dev.andrylat.kedat.common.service.DateTimeService;
 import dev.andrylat.kedat.devicesession.service.DeviceSessionService;
 import java.io.IOException;

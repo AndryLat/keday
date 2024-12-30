@@ -1,4 +1,4 @@
-package dev.andrylat.kedat.common.model.device;
+package dev.andrylat.kedat.common.model.device.session;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.andrylat.kedat.common.InstantConstants;

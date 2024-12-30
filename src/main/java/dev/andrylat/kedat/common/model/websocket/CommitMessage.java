@@ -1,4 +1,4 @@
-package dev.andrylat.kedat.common.model;
+package dev.andrylat.kedat.common.model.websocket;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import dev.andrylat.kedat.common.InstantConstants;
